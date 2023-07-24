@@ -1,6 +1,6 @@
 <script>
 	import { onDestroy } from 'svelte';
-    import mapboxgl from 'mapbox-gl'; // or "const mapboxgl = require('mapbox-gl');"
+    // import mapboxgl from 'mapbox-gl'; // or "const mapboxgl = require('mapbox-gl');"
     import { onMount } from "svelte";
     import { scaleLinear, selectAll, timeFormat, geoAlbersUsa, geoMercator } from "d3";
     import viewport from "$stores/viewport.js";

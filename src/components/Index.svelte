@@ -1,9 +1,9 @@
 <script>
 	import { onMount } from "svelte";
 	import { csv, minIndex } from "d3";
-	import mapboxgl from 'mapbox-gl'; // or "const mapboxgl = require('mapbox-gl');"
+	// import mapboxgl from 'mapbox-gl'; // or "const mapboxgl = require('mapbox-gl');"
 
-	// import Map from "$components/Map.svelte"
+	import Map from "$components/Map.svelte"
 	let url = "https://pudding.cool/2022/03/weather-map-data/acis.csv"
 	let data = null;
     let dataType = "daily"
@@ -51,8 +51,8 @@
 			height: {innerHeight}px;
 		"
 	>
-		<!-- <Map lat={35} lon={-84} zoom={3.5} data={data} least={least} timeframe={dataType}>
-		</Map> -->
+		<Map lat={35} lon={-84} zoom={3.5} data={data} least={least} timeframe={dataType}>
+		</Map>
 	</div>
 {/if}
 
