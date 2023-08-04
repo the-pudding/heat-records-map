@@ -140,6 +140,11 @@ h6 {
 	pointer-events: none;
 }
 
+#content .mapboxgl-ctrl-top-right {
+	z-index: 1000;
+
+}
+
 #content .mapboxgl-popup .mapboxgl-popup-content {
 	/* box-shadow: 0 0 10px 1px rgba(0,0,0,.10); */
 	/* padding-right: 30px; */

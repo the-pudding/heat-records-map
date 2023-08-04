@@ -17,6 +17,9 @@
     let sourceLoaded;
     let flyTod;
 
+    let timeoutTime = 3000;
+    let speed = .5;
+
 
     let variables = {
         "daily":"days_since_daily",
@@ -53,8 +56,6 @@
         "all-time":false,
     }
 
-    let timeoutTime = 0//2000;
-    let speed = 1//.3;
 
     mapboxgl.accessToken = 'pk.eyJ1IjoiZG9jazQyNDIiLCJhIjoiY2xrZ3llNmFkMDRpYjNkcDRuNDQ3MDBmayJ9.r7nPJo7xLNkUAYWp7QO9_g';
 	// set the context here...
@@ -65,6 +66,7 @@
 
     const formatTime = timeFormat("%B %d, %Y");
     const formatTimeNoYear = timeFormat("%b. %d");
+    const formatTimeYear = timeFormat("%b. %d ’%y");
 
     let popupDataToPass = least;
     let popupString = "hi"
@@ -128,6 +130,11 @@
         return formatTimeNoYear(dateNoSuffix);
     }
 
+    function formatDateGeoJson(dataToMake){
+        let dateNoSuffix = new Date(dataToMake.slice(0,4), dataToMake.slice(5,7) -1, dataToMake.slice(8,10));
+        return formatTimeYear(dateNoSuffix);
+    }
+
     let mounted = false;
 
     onMount(async () => {
@@ -165,8 +172,6 @@
 
 	function load() {
 
-        console.log("loading maps")
-
         geojson = {
                 "type":"FeatureCollection",
                 "features":null
@@ -181,7 +186,11 @@
                     "daily_text":getCountFormatDays(+d.days_since_daily),
                     "all_time_text":getCountFormatAllTime(+d.all_time_days),
                     "days_since_daily":+d.days_since_daily,
-                    "name":d.name.replace(" Area","")
+                    "name":d.name.replace(" Area",""),
+                    "days_since_val":d.days_since_val,
+                    "all_time_val":d.all_time_val,
+                    "days_since_daily_date":formatDateGeoJson(d.days_since_daily_date),
+                    "all_time_date":formatDateGeoJson(d.all_time_date)
                 },
                 "id":stationIds.indexOf(d.station),
                 "geometry":{
@@ -224,13 +233,11 @@
 
         map.once('idle', function(){
             loaded = true;
+            map.addControl(new mapboxgl.NavigationControl());
         })
 	}
 
     const loadLayers = () => {
-
-
-        console.log("loading layers")
 
         let sizeControlLength = selectAll(".mapboxgl-ctrl-zoom-in").size();
         function sizeFont(days){
@@ -362,8 +369,12 @@
                                 { 'font-scale': 1 },
                                 '\n',
                                 {},
-                                ["get", "name"],
-                                { 'font-scale': .8 }
+                                [ "concat", [ "to-string", ["get", "name"] ], " ", ["get", variablesVal[timeframe]],"°F" ],
+                                { 'font-scale': .8 },
+                                '\n',
+                                {},
+                                [ "to-string", ["get", variablesDate[timeframe]] ],
+                                { 'font-scale': .7 }
                             ]
                         ]
                     ,
@@ -490,14 +501,19 @@
                     flyTod = true;
                 }, timeoutTime) /* <--- If this is enough greater than transition, it doesn't happen... */
             } else {
-                map.flyTo({
-                    center: [least.true_longitude, least.true_latitude],
-                    zoom: 4,
-                    pitch:0,
-                    speed:speed,
-                    essential: true // This animation is considered essential with
-                    //respect to prefers-reduced-motion
-                });
+                
+                if(map.getZoom() < 5){
+                    map.flyTo({
+                        center: [least.true_longitude, least.true_latitude],
+                        zoom: 4,
+                        pitch:0,
+                        speed:speed,
+                        essential: true // This animation is considered essential with
+                        //respect to prefers-reduced-motion
+                    });
+                }
+
+                
             }
 
 

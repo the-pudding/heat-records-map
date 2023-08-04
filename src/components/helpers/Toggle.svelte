@@ -3,6 +3,7 @@
 	export let style = "inner";
 	export let options = ["daily", "all-time"];
 	export let value = options[0];
+	export let toggleId;
 
 	let checked = value === options[0];
 
@@ -23,11 +24,11 @@
 </script>
 
 <div class="toggle toggle--{style}">
-	<span class="label" {id}>{label}</span>
+	<!-- <span class="label" {id}>{label}</span> -->
 	<button
 		role="switch"
 		aria-checked={checked}
-		aria-labelledby={id}
+		aria-labelledby={toggleId}
 		on:click={handleClick}
 	>
 		{#if style === "inner"}
@@ -120,4 +121,11 @@
 	.toggle--slider button:focus {
 		box-shadow: 0 0 4px 0 var(--color-focus);
 	}
+
+	@media only screen and (max-width: 600px) {
+		.toggle--inner button span {
+			font-size: 14px;
+		}
+	}
+
 </style>

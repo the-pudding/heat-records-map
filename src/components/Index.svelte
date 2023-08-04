@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from "svelte";
-	import { csv, minIndex } from "d3";
+	import { csv, minIndex, group } from "d3";
 	import { fly, fade } from "svelte/transition"
 	import Toggle from "$components/helpers/Toggle.svelte";
 	import Demo from "$components/demo/Demo.svelte"
@@ -11,8 +11,13 @@
 	// import mapboxgl from 'mapbox-gl'; // or "const mapboxgl = require('mapbox-gl');"
 
 	import Map from "$components/Map.svelte"
-	let url = "https://pudding.cool/2022/03/weather-map-data/acis.csv"
+
+	const stamp = Date.now();
+
+	let url = `https://pudding.cool/2022/03/weather-map-data/acis.csv?version=${stamp}`
 	let data;
+
+	let recordsData;
     let dataType = "daily"
 	let least;
 	let leastIndex;
@@ -20,17 +25,24 @@
 	let innerHeight;
 	let moveTitles;
 
+	const toggleId = `toggle-${Math.floor(Math.random() * 1000000)}`;
+	const toggleIdTwo = `toggle-${Math.floor(Math.random() * 1000000)}`;
+
+
+	let hideToggle = false;
+
+	let stationIds;
+
 	let projectView = "map";
 
 	let valueSlider = "daily";
 
-	let toolbarDelay = 0;//6000;
+	let toolbarDelay = 0//4000;
 
 
-	let toRemove = ["Charleston Downtown Area", "Austin-Bergstrom Airport Area", "Portland Downtown Area"]
+	let toRemove = ["Baltimore Downtown Area","Charleston Downtown Area", "Austin-Bergstrom Airport Area", "Portland Downtown Area"]
 
 	const switchDataType = () => {
-		console.log("switching datatype",dataType)
 		if(dataType == "daily"){
 			dataType = "all-time"
 		}
@@ -40,7 +52,6 @@
 	}
 
 	const mapboxLoaded = () => {
-		console.log("here")
 		moveTitles = true;
 	}
 
@@ -54,8 +65,6 @@
 	}
 
 	async function setLeast(response){
-
-		console.log("setting least", dataType)
 
 		leastIndex = minIndex(response, d => {
 				if(dataType == "daily"){
@@ -78,13 +87,25 @@
 			data = response.filter(d => {
 				return toRemove.indexOf(d.name) == -1;
 			});
+
+			stationIds = group(data, d => d.station.split(" ")[0]);
 		});
+		
+		const urlTwo = `https://pudding.cool/2022/03/weather-map-data/heat-records-running.csv?version=${stamp}`;
+
+		csv(urlTwo).then(async function(response) {
+			recordsData = response.sort((a,b) => {
+				return b.date.replace("-","").replace("-","") - a.date.replace("-","").replace("-","");
+			}).filter(d => d.date)
+		})
+
 	})
 
 	$: dataType, data ? setLeast(data) : '';
 
 	$: console.log(valueSlider)
 	$: dataType = valueSlider;
+	$: hideToggle = projectView == "map" ? false : false;
 </script>
 
 
@@ -93,7 +114,8 @@
 <div class="bottom">
 	<div class="white-fade not-loaded" class:moveTitles>
 	</div>
-	<h3>A Project from <a target="_blank" href="/">The Pudding</a></h3>
+	<h3 class="recirc-desktop">A Project from <span><a target="_blank" href="/">The Pudding</a>.</span> Also, view <a href="https://pudding.cool/projects/heat-records/">your city&rsquo;s heat records trends</a>.</h3>
+	<h3 class="recirc-mobile">A Project from <span><a target="_blank" href="/">The Pudding</a>.</span> View <a href="https://pudding.cool/projects/heat-records/">your city&rsquo;s trends</a>.</h3>
 </div>
 
 <div class="top">
@@ -113,16 +135,22 @@
 
 {#if !data}
 	<div out:fly={{delay:500, y:-20, duration:500}} class="loading">
-		<p>loading...</p>
+		<p>Loading...</p>
 	</div>
 {/if}
 
 {#if data}
 
 	{#if projectView == "list"}
-		<div class="list" transition:fly={{x:innerWidth,duration:500, delay:500, opacity:1}}>
-			<div class="inner-list">
-				<ListView {data} {dataType} />
+		<div class="list"
+		in:fly={{y:0, x:innerWidth,duration:500, delay:500, opacity:1}}
+			style="
+				height: {innerHeight}px;
+			"
+		>
+			<div class="inner-list"
+			>
+				<ListView {stationIds} {recordsData} {dataType} />
 			</div>
 		</div>
 	{/if}
@@ -142,15 +170,18 @@
 
 	<div in:fly={{y:20, duration:1000, delay:toolbarDelay}} class="toolbar">
 
-		<section class="timeframe-toggle">
+		<section {toggleId} class="timeframe-toggle" class:hideToggle>
 			<!-- <h2>Toggle (inner) <span>{valueInner}</span></h2>
 			<Toggle label="Enable" style="inner" bind:value={valueInner} /> -->
 			<p>Time since a heat record was set...</p>
-				<Toggle label="" style="inner" bind:value={valueSlider} />
+				<Toggle {toggleId} label="" style="inner" bind:value={valueSlider} />
 		</section>
 		<div class="project-view-toggle">
-			<p>{projectView == "map" ? "List" : "Map"} View</p>
-			<button on:click={() => changeView()} class="toolbar-button">
+			<p {toggleIdTwo}>{projectView == "map" ? "List" : "Map"} View</p>
+			<button 
+				aria-labelledby={toggleIdTwo}
+				on:click={() => changeView()} class="toolbar-button"
+			>
 				{#if projectView == "map"}
 					<List color={"#000"} strokeWidth={2} />
 				{:else}
@@ -171,6 +202,9 @@
 <svelte:window bind:innerHeight bind:innerWidth />
 
 <style>
+	.recirc-mobile {
+		display: none;
+	}
 	.list {
 		position: absolute;
 		top: 0;
@@ -192,11 +226,14 @@
 	.inner-list {
 		width: calc(100% - 50px);
 		margin: 0 auto;
-		max-width: 400px;
+		max-width: 450px;
+		padding-top: 50px;
+		padding-bottom: 200px;
 	}
 	.timeframe-toggle, .project-view-toggle {
 		display: flex;
 		align-self: center;
+		transition: opacity	.5s;
 	}
 
 	.project-view-toggle p {
@@ -219,6 +256,7 @@
 		transform: translate(0,-50%);
 		z-index: 10000;
 		width: 100%;
+		pointer-events: none;
 	}
 
 	.loading {
@@ -258,6 +296,7 @@
 		display: flex;
 		justify-content: space-between;
 		padding: 0 10px;
+		max-width: 600px;
 
 
 		background: rgba(255, 255, 255, 0.9);
@@ -272,9 +311,15 @@
 		margin-top: 10px;
 	}
 	h3 {
-		font-size: 12px;
+		font-size: 13px;
 		margin: 0 auto;
 		margin-bottom: 10px;
+		font-weight: 400;
+		opacity: .9;
+	}
+	h3 span {
+		font-weight: 600;
+		opacity: 1;
 	}
 	.top {
 		position: absolute;
@@ -284,6 +329,7 @@
 		margin: 0 auto;
 		z-index: 1000;
 		height: 100px;
+		pointer-events: none;
 	}
 
 	.bottom {
@@ -331,5 +377,71 @@
 		width: 45px;
 		border: 1px solid rgba(0,0,0,.06);
 	}
+
+	.hideToggle.timeframe-toggle{
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	@media only screen and (max-width: 600px) {
+
+		h1 {
+			text-align: left;
+			line-height: 1.2;
+			font-weight: 600;
+		}
+		.recirc-mobile {
+			display: block;
+		}
+		.bottom {
+			left: 0;
+			right: 0;
+			margin: 0 auto;
+			z-index: 100000;
+		}
+		.recirc-desktop {
+			display: none;
+		}
+		.toolbar {
+			width: calc(100% - 10px);
+			padding-left: 20px;
+		}
+		.timeframe-toggle p, .project-view-toggle p {
+			font-size: 13px;
+		}
+
+		h3 {
+			font-size: 12px;
+			width: calc(100% - 20px);
+		}
+
+		.project-view-toggle p {
+			max-width: 40px;
+			margin-right: 8px;
+		}
+		.timeframe-toggle {
+			position: relative;
+		}
+		.timeframe-toggle p {
+			position: absolute;
+			top: -18px;
+			left: 0;
+			right: 0;
+			margin: 0 auto;
+			width: 100%;
+			max-width: none;
+			text-align: center;
+			text-shadow: -3px -3px 1px rgba(255,255,255,.40), -3px -2px 1px rgba(255,255,255,.40), -3px -1px 1px rgba(255,255,255,.40), -3px 0px 1px rgba(255,255,255,.40), -3px 1px 1px rgba(255,255,255,.40), -3px 2px 1px rgba(255,255,255,.40), -3px 3px 1px rgba(255,255,255,.40), -2px -3px 1px rgba(255,255,255,.40), -2px -2px 1px rgba(255,255,255,.40), -2px -1px 1px rgba(255,255,255,.40), -2px 0px 1px rgba(255,255,255,.40), -2px 1px 1px rgba(255,255,255,.40), -2px 2px 1px rgba(255,255,255,.40), -2px 3px 1px rgba(255,255,255,.40), -1px -3px 1px rgba(255,255,255,.40), -1px -2px 1px rgba(255,255,255,.40), -1px -1px 1px rgba(255,255,255,.40), -1px 0px 1px rgba(255,255,255,.40), -1px 1px 1px rgba(255,255,255,.40), -1px 2px 1px rgba(255,255,255,.40), -1px 3px 1px rgba(255,255,255,.40), 0px -3px 1px rgba(255,255,255,.40), 0px -2px 1px rgba(255,255,255,.40), 0px -1px 1px rgba(255,255,255,.40), 0px 1px 1px rgba(255,255,255,.40), 0px 2px 1px rgba(255,255,255,.40), 0px 3px 1px rgba(255,255,255,.40), 1px -3px 1px rgba(255,255,255,.40), 1px -2px 1px rgba(255,255,255,.40), 1px -1px 1px rgba(255,255,255,.40), 1px 0px 1px rgba(255,255,255,.40), 1px 1px 1px rgba(255,255,255,.40), 1px 2px 1px rgba(255,255,255,.40), 1px 3px 1px rgba(255,255,255,.40), 2px -3px 1px rgba(255,255,255,.40), 2px -2px 1px rgba(255,255,255,.40), 2px -1px 1px rgba(255,255,255,.40), 2px 0px 1px rgba(255,255,255,.40), 2px 1px 1px rgba(255,255,255,.40), 2px 2px 1px rgba(255,255,255,.40), 2px 3px 1px rgba(255,255,255,.40), 3px -3px 1px rgba(255,255,255,.40), 3px -2px 1px rgba(255,255,255,.40), 3px -1px 1px rgba(255,255,255,.40), 3px 0px 1px rgba(255,255,255,.40), 3px 1px 1px rgba(255,255,255,.40), 3px 2px 1px rgba(255,255,255,.40), 3px 3px 1px rgba(255,255,255,.40);
+		}
+		.bottom .white-fade {
+			background: linear-gradient(0deg, #FFF 5%, rgba(255,255,255,0) 100%);
+		}
+
+		.title {
+			width: calc(100% - 40px);
+		}
+
+	}
+
 	
 </style>
