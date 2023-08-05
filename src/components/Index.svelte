@@ -115,13 +115,14 @@
 	<div class="white-fade not-loaded" class:moveTitles>
 	</div>
 	<h3 class="recirc-desktop">A Project from <span><a target="_blank" href="/">The Pudding</a>.</span> Also, view <a href="https://pudding.cool/projects/heat-records/">your city&rsquo;s heat records trends</a>.</h3>
-	<h3 class="recirc-mobile">A Project from <span><a target="_blank" href="/">The Pudding</a>.</span> View <a href="https://pudding.cool/projects/heat-records/">your city&rsquo;s trends</a>.</h3>
 </div>
 
 <div class="top">
 	<div class="white-fade not-loaded" class:moveTitles>
 	</div>
 </div>
+
+<h3 class="recirc-mobile">A Project from <span><a target="_blank" href="/">The Pudding</a>.</span> View <a href="https://pudding.cool/projects/heat-records/">your city&rsquo;s trends</a>.</h3>
 
 {#if data}
 <div class:moveTitles in:fade={{delay:1000, duration:1000}} class="title">
@@ -204,6 +205,11 @@
 <style>
 	.recirc-mobile {
 		display: none;
+		margin: 0 auto;
+		margin-top: 7px;
+		position: absolute;
+		top: 0;
+		z-index: 1000000;
 	}
 	.list {
 		position: absolute;
@@ -383,24 +389,50 @@
 		pointer-events: none;
 	}
 
+	@media only screen and (max-width: 950px) {
+		.recirc-mobile {
+			display: block;
+			left: 0;
+			right: 0;
+		}
+		.recirc-desktop {
+			display: none;
+		}
+
+		.top {
+			pointer-events: none;
+		}
+
+		.white-fade {
+			pointer-events: none;
+		}
+
+		h1 {
+			margin-top: 30px;
+		}
+
+	}
+	
+
+
 	@media only screen and (max-width: 600px) {
 
 		h1 {
 			text-align: left;
 			line-height: 1.2;
 			font-weight: 600;
+			width: calc(100% - 20px);
 		}
-		.recirc-mobile {
-			display: block;
+		.recirc-mobile{
+			text-align: left;
+			width: calc(100% - 20px);
+			pointer-events: all;
 		}
 		.bottom {
 			left: 0;
 			right: 0;
 			margin: 0 auto;
 			z-index: 100000;
-		}
-		.recirc-desktop {
-			display: none;
 		}
 		.toolbar {
 			width: calc(100% - 10px);

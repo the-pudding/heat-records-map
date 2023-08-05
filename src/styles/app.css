@@ -97,6 +97,8 @@ h6 {
 .mapboxgl-ctrl-logo {
 	border: none;
 	text-decoration: none;
+	width: 70px;
+    height: 20px;
 }
 
 .last-record.mapboxgl-popup-anchor-bottom {
@@ -145,6 +147,15 @@ h6 {
 
 }
 
+#content .mapboxgl-ctrl-bottom-left {
+	z-index: 100000;
+}
+
+#content .mapboxgl-ctrl-bottom-right {
+	z-index: 100000;
+	width: 120px;
+}
+
 #content .mapboxgl-popup .mapboxgl-popup-content {
 	/* box-shadow: 0 0 10px 1px rgba(0,0,0,.10); */
 	/* padding-right: 30px; */
@@ -170,4 +181,12 @@ h6 {
 	content: '';
 	padding-top: 57.8910152867%;
 	display: block;
+}
+
+
+@media only screen and (max-width: 950px) {
+	#content .mapboxgl-ctrl-bottom-right {
+		z-index: 100000;
+		width: auto;
+	}
 }
