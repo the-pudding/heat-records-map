@@ -4,10 +4,6 @@
     export let dataType;
     export let stationIds;
 
-
-    
-
-
     const formatTime = timeFormat("%m/%d/%y");
     const formatTimeNoYear = timeFormat("%b. %e");
     let dataForChart;
@@ -47,9 +43,14 @@
         let yourDate = new Date()
         // let dateNoSuffix = new Date(dataToMake.slice(0,4), +dataToMake.slice(5,7) -1, dataToMake.slice(8,10));
         // yourDate = yourDate.toISOString().split('T')[0];
+
+        recordsData = recordsData.filter(d => {
+            return stationIds.get(d.station);
+        })
+
         recordsData.forEach(d => {
             let dateToSubtract = new Date(d["date"].slice(0,4), d["date"].slice(5,7) -1, d["date"].slice(8,10));
-            d["days_since"] = Math.floor((yourDate - dateToSubtract) / (1000*60*60*24)); //+yourDate.replace("-","").replace("-","") - +d["date"].replace("-","").replace("-","")
+            d["days_since"] = Math.floor((yourDate - dateToSubtract) / (1000*60*60*24)); //+yourDate.replace("-","").replace("-","") - +d["date"].replace("-","").replace("-","")            
             d["name"] = stationIds.get(d.station)[0]["name"];
             d["state_abbr"] = stationIds.get(d.station)[0]["state_abbr"];
         })

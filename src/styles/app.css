@@ -97,8 +97,6 @@ h6 {
 .mapboxgl-ctrl-logo {
 	border: none;
 	text-decoration: none;
-	width: 70px;
-    height: 20px;
 }
 
 .last-record.mapboxgl-popup-anchor-bottom {
